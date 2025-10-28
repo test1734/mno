@@ -1,0 +1,49 @@
+!pip install pandas scikit-learn numpy mlxtend
+
+import pandas as pd
+import numpy as np
+from sklearn.preprocessing import OrdinalEncoder, LabelEncoder
+from sklearn.naive_bayes import CategoricalNB
+from sklearn.model_selection import cross_val_score, train_test_split
+from sklearn.tree import DecisionTreeClassifier, plot_tree
+from sklearn.metrics import accuracy_score, classification_report
+import matplotlib.pyplot as plt
+from mlxtend.frequent_patterns import apriori, association_rules
+from mlxtend.preprocessing import TransactionEncoder
+
+# --- load your CSV (put tennis.csv in same folder as notebook) ---
+df = pd.read_csv("tennis.csv")   # change path if needed
+
+# --- prepare features & label ---
+features = ["Outlook","Temperature","Humidity","Windy"]
+X_raw = df[features].copy()
+X_raw["Windy"] = X_raw["Windy"].astype(str)   # treat windy as categorical string
+y_raw = df["Play Tennis"]
+
+# encode categories to integers
+enc = OrdinalEncoder(dtype=int)
+X = enc.fit_transform(X_raw)
+
+lab = LabelEncoder()
+y = lab.fit_transform(y_raw)
+
+# train Categorical Naive Bayes
+clf = CategoricalNB(alpha=1.0)
+clf.fit(X, y)
+
+# prepare query and predict
+query = pd.DataFrame([{"Outlook":"Rainy","Temperature":"Mild","Humidity":"High","Windy":"True"}])
+Xq = enc.transform(query[features])
+pred = lab.inverse_transform(clf.predict(Xq))[0]
+probs = clf.predict_proba(Xq)[0]
+
+# print results (simple)
+print("Prediction for (Outlook=Rainy, Temperature=Mild, Humidity=High, Windy=True) -->", pred)
+print("Probabilities:")
+for label, p in zip(lab.classes_, probs):
+    print(f"  {label}: {p:.4f}")
+
+# also show feature encodings (optional, helps lab report)
+print("\nFeature encodings (category -> int):")
+for i, col in enumerate(features):
+    print(f"  {col}:", {cat: idx for idx, cat in enumerate(enc.categories_[i])})
