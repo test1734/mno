@@ -1,0 +1,57 @@
+# Disable all warnings
+import warnings
+warnings.filterwarnings('ignore')
+
+# Fix KMeans MKL memory warning
+import os
+os.environ["OMP_NUM_THREADS"] = "1"
+
+# Import required libraries
+import pandas as pd
+from sklearn.preprocessing import LabelEncoder
+from sklearn.cluster import KMeans
+import matplotlib.pyplot as plt
+
+# Load dataset
+data = pd.read_csv('customers_kmeans.csv')
+
+# Encode 'Genre'
+le = LabelEncoder()
+data['Genre'] = le.fit_transform(data['Genre'])
+
+# Select features
+X = data[['Genre', 'Age', 'Annual Income (k$)', 'Spending Score']]
+
+# ----- ELBOW METHOD -----
+inertia = []
+max_k = min(10, len(X))
+K = range(1, max_k + 1)
+
+for k in K:
+    kmeans = KMeans(n_clusters=k, random_state=0)
+    kmeans.fit(X)
+    inertia.append(kmeans.inertia_)
+
+# Plot Elbow Method (No gridlines)
+plt.figure(figsize=(6, 4))
+plt.plot(K, inertia, marker='o', color='blue')
+plt.title('Elbow Method to Find Optimal k')
+plt.xlabel('Number of Clusters (k)')
+plt.ylabel('Inertia')
+plt.grid(False)
+plt.show()
+
+# ----- K-MEANS CLUSTERING -----
+k = 3  # Choose from elbow
+kmeans = KMeans(n_clusters=k, random_state=0)
+data['Cluster'] = kmeans.fit_predict(X)
+
+# Plot clusters (Age vs Spending Score)
+plt.figure(figsize=(6, 4))
+plt.scatter(data['Age'], data['Spending Score'],
+            c=data['Cluster'], cmap='viridis', s=100)
+plt.xlabel('Age')
+plt.ylabel('Spending Score')
+plt.title('K-Means Clustering Result')
+plt.grid(False)
+plt.show()
