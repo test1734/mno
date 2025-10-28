@@ -1,0 +1,42 @@
+# Import required libraries 
+import pandas as pd
+from sklearn.linear_model import LinearRegression
+import matplotlib.pyplot as plt
+
+# Load the dataset using the uploaded tea.csv file
+data = pd.read_csv(r"C:\Users\Deepu\OneDrive\Deepu\tea.csv")  # since you already uploaded it
+
+# Rename columns to avoid KeyError (matching your expected style)
+data.columns = ['Temperature', 'TeaSales']
+
+# Display the dataset (optional: viva answer)
+print("Dataset Preview:")
+print(data.head())
+
+# Define independent (X) and dependent (y) variables
+X = data[['Temperature']]  # 2D array
+y = data['TeaSales']       # 1D array
+
+# Create and train the Linear Regression model
+model = LinearRegression()
+model.fit(X, y)
+
+# Get user input for temperature
+temp_value = float(input("\nEnter today's temperature (°C): "))
+
+# Predict tea sales
+predicted_sales = model.predict(pd.DataFrame({'Temperature': [temp_value]}))
+print(f"\nPredicted Tea Sales for {temp_value}°C = {predicted_sales[0]:.2f} dollars")
+
+# Visualize the data and regression line
+plt.figure(figsize=(8, 5))
+plt.scatter(X, y, label='Actual Data')
+plt.plot(X, model.predict(X), label='Regression Line')
+plt.scatter(temp_value, predicted_sales, s=100, label='Predicted Point')
+
+plt.xlabel('Temperature (°C)')
+plt.ylabel('Tea Sales (dollars)')
+plt.title('Temperature vs Tea Sales')
+plt.legend()
+plt.show()
+
