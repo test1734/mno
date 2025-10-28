@@ -1,0 +1,47 @@
+!pip install pandas scikit-learn numpy mlxtend
+
+import pandas as pd
+import numpy as np
+from sklearn.preprocessing import OrdinalEncoder, LabelEncoder
+from sklearn.naive_bayes import CategoricalNB
+from sklearn.model_selection import cross_val_score, train_test_split
+from sklearn.tree import DecisionTreeClassifier, plot_tree
+from sklearn.metrics import accuracy_score, classification_report
+import matplotlib.pyplot as plt
+from mlxtend.frequent_patterns import apriori, association_rules
+from mlxtend.preprocessing import TransactionEncoder
+
+# ===== STEP 1: Load dataset =====
+# Create CSV (transactions.csv) before running this
+# Example:
+# TID,Items
+# T1,meatballs,milk,honey,french fries,protein bar
+# T2,red wine,shrimp,pasta,pepper,eggs,chocolate,shampoo
+# ...
+
+df = pd.read_csv("transactions.csv")
+print("=== Dataset Loaded ===")
+print(df, "\n")
+
+# ===== STEP 2: Preprocess data =====
+# Split items into lists
+transactions = df.apply(lambda row: [x for x in row[1:] if str(x) != 'nan'], axis=1).tolist()
+
+# Create one-hot encoded DataFrame
+from mlxtend.preprocessing import TransactionEncoder
+te = TransactionEncoder()
+te_ary = te.fit(transactions).transform(transactions)
+df_encoded = pd.DataFrame(te_ary, columns=te.columns_)
+
+print("=== One-Hot Encoded Transaction Data ===")
+print(df_encoded.head(), "\n")
+
+# ===== STEP 3: Apply Apriori algorithm =====
+frequent_itemsets = apriori(df_encoded, min_support=0.3, use_colnames=True)
+print("=== Frequent Itemsets (min_support=0.3) ===")
+print(frequent_itemsets, "\n")
+
+# ===== STEP 4: Generate Association Rules =====
+rules = association_rules(frequent_itemsets, metric="confidence", min_threshold=0.6)
+print("=== Association Rules (confidence >= 0.6) ===")
+print(rules[["antecedents", "consequents", "support", "confidence", "lift"]])
