@@ -1,0 +1,60 @@
+!pip install pandas scikit-learn numpy mlxtend
+
+import pandas as pd
+import numpy as np
+from sklearn.preprocessing import OrdinalEncoder, LabelEncoder
+from sklearn.naive_bayes import CategoricalNB
+from sklearn.model_selection import cross_val_score, train_test_split
+from sklearn.tree import DecisionTreeClassifier, plot_tree
+from sklearn.metrics import accuracy_score, classification_report
+import matplotlib.pyplot as plt
+from mlxtend.frequent_patterns import apriori, association_rules
+from mlxtend.preprocessing import TransactionEncoder
+
+# 1) Load dataset (keep file in same folder)
+df = pd.read_csv("ml10.csv")   # ensure headers match: Day,Outlook,Temprature,Humidity,Wind,Play_Tennis
+print("Dataset:\n", df, "\n")
+
+# 2) Select features (exclude Day) and target
+feature_cols = ['Outlook', 'Temprature', 'Humidity', 'Wind']
+target_col = 'Play_Tennis'
+
+# 3) Create a LabelEncoder for each categorical column and fit on training data
+encoders = {}
+df_enc = df.copy()
+for col in feature_cols:
+    le = LabelEncoder()
+    df_enc[col] = le.fit_transform(df[col].astype(str))
+    encoders[col] = le
+
+# encode target
+le_target = LabelEncoder()
+df_enc[target_col] = le_target.fit_transform(df[target_col].astype(str))
+
+print("Encoded dataset:\n", df_enc, "\n")
+
+# 4) Train Decision Tree
+X = df_enc[feature_cols]
+y = df_enc[target_col]
+clf = DecisionTreeClassifier(criterion='entropy', random_state=1)
+clf.fit(X, y)
+print("Model trained.\n")
+
+# 5) Prepare sample (use plain strings) and encode using stored encoders (DO NOT FIT)
+sample_raw = {"Outlook": "Rain", "Temprature": "Mild", "Humidity": "High", "Wind": "Weak"}
+sample = pd.DataFrame([sample_raw])
+for col in feature_cols:
+    sample[col] = encoders[col].transform(sample[col].astype(str))  # transform only
+
+sample_X = sample[feature_cols]
+print("Encoded sample:", sample_X.to_dict(orient='records')[0])
+
+# 6) Predict and show readable label
+pred_idx = clf.predict(sample_X)[0]
+pred_label = le_target.inverse_transform([pred_idx])[0]
+print(f"Prediction for {sample_raw} --> Play_Tennis = {pred_label}\n")
+
+# 7) (Optional) Visualize the tree
+plt.figure(figsize=(8,5))
+plot_tree(clf, filled=True, feature_names=feature_cols, class_names=le_target.classes_, rounded=True)
+plt.show()
