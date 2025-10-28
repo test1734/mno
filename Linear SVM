@@ -1,0 +1,54 @@
+# Import required libraries
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.svm import SVC
+from sklearn.metrics import confusion_matrix, accuracy_score, classification_report
+
+# Step 1: Load dataset (make sure creditcard.csv is in same folder)
+df = pd.read_csv("creditcard.csv")
+
+print("Dataset Loaded Successfully!\n")
+print(df.head())
+
+# Step 2: Separate features and target
+X = df.drop('Class', axis=1)
+y = df['Class']
+
+# Step 3: Split data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Step 4: Feature scaling
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
+# Step 5: Create and train Linear SVM model
+model = SVC(kernel='linear')
+model.fit(X_train, y_train)
+
+# Step 6: Predict results
+y_pred = model.predict(X_test)
+
+# Step 7: Evaluate model
+print("\nModel Evaluation Results:\n")
+print("Confusion Matrix:\n", confusion_matrix(y_test, y_pred))
+print("\nAccuracy:", accuracy_score(y_test, y_pred))
+print("\nClassification Report:\n", classification_report(y_test, y_pred))
+
+# Step 8: Visualization (sample 500 points for clear plotting)
+# Use first two features (V1 and V2) for visualization
+sample_df = df.sample(500, random_state=42)
+
+plt.figure(figsize=(8,6))
+plt.scatter(sample_df[sample_df['Class'] == 0]['V1'], sample_df[sample_df['Class'] == 0]['V2'],
+            color='blue', label='Not Fraud (0)', alpha=0.6)
+plt.scatter(sample_df[sample_df['Class'] == 1]['V1'], sample_df[sample_df['Class'] == 1]['V2'],
+            color='red', label='Fraud (1)', alpha=0.8)
+plt.title(' Credit Card Fraud Detection (Linear SVM)')
+plt.xlabel('Feature V1')
+plt.ylabel('Feature V2')
+plt.legend()
+plt.grid(True)
+plt.show()
