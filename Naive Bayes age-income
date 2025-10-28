@@ -1,0 +1,71 @@
+# Step 1: Import libraries
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder
+from sklearn.naive_bayes import GaussianNB
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+
+# Step 2: Load dataset
+data = pd.read_csv("person_naive.csv")
+
+print("Dataset Preview:")
+print(data.head())
+
+# Step 3: Encode categorical columns
+label_encoders = {}
+for col in ['Age', 'Income', 'Student', 'Credit', 'Buy']:
+    le = LabelEncoder()
+    data[col] = le.fit_transform(data[col])
+    label_encoders[col] = le  # store encoders for later use
+
+print("\n Encoded Data:")
+print(data.head())
+
+# Step 4: Split features and target
+X = data[['Age', 'Income', 'Student', 'Credit']]
+y = data['Buy']
+
+# Step 5: Train-test split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+# Step 6: Train Naive Bayes model
+model = GaussianNB()
+model.fit(X_train, y_train)
+
+# Step 7: Evaluate
+y_pred = model.predict(X_test)
+print("\nConfusion Matrix:\n", confusion_matrix(y_test, y_pred))
+print("\nClassification Report:\n", classification_report(y_test, y_pred))
+print("Accuracy:", accuracy_score(y_test, y_pred))
+
+# Step 8: Take user input
+print("\nEnter details to check credit card eligibility ")
+
+age = input("Enter Age (youth / middle_aged / senior): ").strip().lower()
+income = input("Enter Income (high / medium / low): ").strip().lower()
+student = input("Is the person a student? (yes / no): ").strip().lower()
+credit = input("Credit rating (fair / excellent): ").strip().lower()
+
+# Step 9: Encode user input using stored encoders
+user_data = pd.DataFrame({
+    'Age': [age],
+    'Income': [income],
+    'Student': [student],
+    'Credit': [credit]
+})
+
+for col in user_data.columns:
+    if col in label_encoders:
+        le = label_encoders[col]
+        if user_data[col][0] in le.classes_:
+            user_data[col] = le.transform(user_data[col])
+        else:
+            print(f" Warning: '{user_data[col][0]}' not in training data for '{col}'. Defaulting to first known value.")
+            user_data[col] = [0]
+
+# Step 10: Predict
+prediction = model.predict(user_data)[0]
+result = label_encoders['Buy'].inverse_transform([prediction])[0]
+
+print("\nPrediction Result:", "Eligible for Credit Card" if result == "yes" else "Not Eligible for Credit Card")
+
