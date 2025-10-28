@@ -1,0 +1,88 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.metrics import silhouette_score
+from sklearn.preprocessing import StandardScaler
+
+# --- Step 1: Read dataset ---
+df = pd.read_csv("cure.csv")
+
+# --- Step 2: Select numeric features (Quantity, UnitPrice) ---
+X = df[['Quantity', 'UnitPrice']].values
+
+# --- Step 3: Standardize the features ---
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+# --- Step 4: Simple CURE algorithm implementation ---
+num_clusters = 2
+num_representatives = 2
+shrink_factor = 0.5
+
+clusters = [[x] for x in X_scaled]  # Each point is its own cluster
+
+def cluster_centroid(cluster):
+    return np.mean(cluster, axis=0)
+
+def distance(a, b):
+    return np.linalg.norm(a - b)
+
+# Merge clusters until the desired number is reached
+while len(clusters) > num_clusters:
+    min_dist = float('inf')
+    pair = None
+    for i in range(len(clusters)):
+        for j in range(i + 1, len(clusters)):
+            d = np.min([distance(a, b) for a in clusters[i] for b in clusters[j]])
+            if d < min_dist:
+                min_dist = d
+                pair = (i, j)
+    i, j = pair
+    merged = clusters[i] + clusters[j]
+    del clusters[j]
+    del clusters[i]
+    clusters.append(merged)
+
+# Shrink representative points toward centroid
+final_clusters = []
+for cluster in clusters:
+    centroid = cluster_centroid(cluster)
+    reps = cluster[:num_representatives]
+    reps = [centroid + shrink_factor * (r - centroid) for r in reps]
+    final_clusters.append(np.array(reps))
+
+# Assign labels for silhouette score
+labels = np.zeros(len(X_scaled))
+for i, cluster in enumerate(clusters):
+    for point in cluster:
+        idx = np.where((X_scaled == point).all(axis=1))[0][0]
+        labels[idx] = i
+
+# --- Step 5: Calculate silhouette score ---
+score = silhouette_score(X_scaled, labels)
+
+print("\nOUTPUT")
+print(f"\nAverage Silhouette Score: {score}\n")
+
+# --- Step 6: Plot Clustered Data ---
+plt.figure(figsize=(6, 4))
+plt.scatter(X_scaled[:, 0], X_scaled[:, 1], c=labels, cmap='coolwarm', s=50)
+for i, cluster in enumerate(clusters):
+    center = cluster_centroid(cluster)
+    plt.scatter(center[0], center[1], marker='X', s=200, c='black', label=f'Cluster {i+1} Center')
+
+plt.title("Clustered Data")
+plt.xlabel("Feature 1")
+plt.ylabel("Feature 2")
+plt.legend()
+plt.show()
+
+# --- Step 7: Print cluster details (same as image format) ---
+for i, cluster in enumerate(clusters):
+    cluster = np.array(cluster)
+    mean_f1 = np.mean(cluster[:, 0])
+    mean_f2 = np.mean(cluster[:, 1])
+    print(f"Cluster {i+1}:")
+    print(f"Number of points: {len(cluster)}")
+    print(f"Mean of feature 1: {round(mean_f1, 2)}")
+    print(f"Mean of feature 2: {round(mean_f2, 2)}\n")
