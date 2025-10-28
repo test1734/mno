@@ -1,0 +1,47 @@
+# STEP 1: Import required libraries
+import pandas as pd
+from sklearn.preprocessing import LabelEncoder
+from sklearn.cluster import KMeans
+import matplotlib.pyplot as plt
+
+# STEP 2: Load the dataset
+data = pd.read_csv('status_kmeans.csv')
+
+# STEP 3: Convert 'status_type' to numeric using LabelEncoder
+le = LabelEncoder()
+data['status_type'] = le.fit_transform(data['status_type'])
+
+# STEP 4: Select numeric columns for clustering
+X = data[['status_type', 'num_commnts', 'num_shares', 'num_likes', 'num_wows', 'num_hahas', 'num_sads', 'num_angrys']]
+
+# STEP 5: Elbow Method (limit k ≤ number of samples)
+inertia = []
+max_k = min(10, len(X))
+K = range(1, max_k + 1)
+
+for k in K:
+    kmeans = KMeans(n_clusters=k, random_state=0)
+    kmeans.fit(X)
+    inertia.append(kmeans.inertia_)
+
+# Elbow Method graph (no grid)
+plt.figure(figsize=(6, 4))
+plt.plot(K, inertia, marker='o', color='blue')
+plt.title('Elbow Method to Find Optimal k')
+plt.xlabel('Number of Clusters (k)')
+plt.ylabel('Inertia')
+plt.show()
+
+# STEP 6: Apply K-Means with k=3 or less
+k = min(3, len(X))
+kmeans = KMeans(n_clusters=k, random_state=0)
+data['Cluster'] = kmeans.fit_predict(X)
+
+# STEP 7: Cluster visualization (no grid)
+plt.figure(figsize=(6, 4))
+plt.scatter(data['num_likes'], data['num_commnts'], c=data['Cluster'], cmap='viridis', s=100)
+plt.xlabel('Number of Likes')
+plt.ylabel('Number of Comments')
+plt.title('K-Means Clustering Result')
+plt.show()
+
