@@ -1,0 +1,411 @@
+#Linear Regression hoursstudied
+import pandas as pd
+from sklearn.linear_model import LinearRegression
+
+data = pd.read_csv("studyhours.csv")
+data.columns = ['HoursStudied', 'ExamScores']
+
+X = data[['HoursStudied']]
+y = data['ExamScores']
+
+model = LinearRegression()
+model.fit(X, y)
+
+hours = float(input("Enter number of study hours: "))
+
+predicted_score = model.predict(pd.DataFrame({'HoursStudied': [hours]}))
+print(f"\nPredicted Exam Score for {hours} hours of study = {predicted_score[0]:.2f}")
+
+#Linear Regression Icecream
+import pandas as pd
+from sklearn.linear_model import LinearRegression
+
+data = pd.read_csv("icecream.csv")
+data.columns = ['Temperature', 'IceCreamSales']
+
+X = data[['Temperature']]
+y = data['IceCreamSales']
+
+model = LinearRegression()
+model.fit(X, y)
+
+temp = float(input("Enter Temperature (°C): "))
+
+predicted = model.predict(pd.DataFrame({'Temperature': [temp]}))
+print(f"\nPredicted Ice Cream Sales for {temp}°C = {predicted[0]:.2f} litres")
+
+#Linear Regression Teasale
+import pandas as pd
+from sklearn.linear_model import LinearRegression
+
+data = pd.read_csv("tea.csv")
+data.columns = ['Temperature', 'TeaSales']
+
+X = data[['Temperature']]
+y = data['TeaSales']
+
+model = LinearRegression()
+model.fit(X, y)
+
+temp = float(input("Enter Temperature (°C): "))
+
+predicted_sales = model.predict(pd.DataFrame({'Temperature': [temp]}))
+print(f"\nPredicted Tea Sales for {temp}°C = ${predicted_sales[0]:.2f}")
+
+#Multi Linear Regression Carmodel
+import pandas as pd
+from sklearn.linear_model import LinearRegression
+
+data = pd.read_csv("car.csv")
+data.columns = ['Model','CarModel','VOLUME','WEIGHT','CO2']
+
+X = data[['VOLUME','WEIGHT']]
+y = data['CO2']
+
+model = LinearRegression()
+model.fit(X, y)
+
+vol = float(input("Enter Volume: "))
+wt = float(input("Enter Weight: "))
+
+predicted = model.predict(pd.DataFrame({'VOLUME':[vol], 'WEIGHT':[wt]}))
+print(f"\nPredicted CO2 for Volume {vol} and Weight {wt} = {predicted[0]:.2f}")
+
+#SVM Linear creditcard
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.svm import SVC
+import matplotlib.pyplot as plt
+
+data = pd.read_csv("creditcard.csv", engine="python", on_bad_lines="skip")
+data = data.dropna()
+
+X = data.drop('Class', axis=1)
+y = data['Class']
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
+model = SVC(kernel='linear')
+model.fit(X_train, y_train)
+
+print("SVM (linear) model trained successfully for fraud detection.")
+
+plt.scatter(data['Amount'], data['Time'], c=data['Class'])
+plt.xlabel("Amount"); plt.ylabel("Time")
+plt.title("Fraud vs Non-Fraud (Amount vs Time)")
+plt.show()
+
+#Linear SVM UserID
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder, StandardScaler
+from sklearn.svm import SVC
+import matplotlib.pyplot as plt
+
+data = pd.read_csv("linearbinaryclassifier.csv")
+
+# Encode Gender
+le = LabelEncoder()
+data['Gender'] = le.fit_transform(data['Gender'])
+
+X = data[['Gender','Age','Estimated Salary']]
+y = data['Purchased']
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
+model = SVC(kernel='linear')
+model.fit(X_train, y_train)
+
+print("Linear SVM Model Trained Successfully for Purchase Prediction.")
+
+# Simple Visualization
+plt.scatter(data['Age'], data['Estimated Salary'], c=data['Purchased'])
+plt.xlabel('Age')
+plt.ylabel('Estimated Salary')
+plt.title("Purchase Decision Visualization")
+plt.show()
+
+#Naive Bayes employment
+import pandas as pd
+from sklearn.preprocessing import LabelEncoder
+from sklearn.naive_bayes import GaussianNB
+
+data = pd.read_csv("naivebayes_creditcard.csv")
+
+encoders = {}
+for col in ['Age','Income','Student','Credit','Buy']:
+    enc = LabelEncoder()
+    data[col] = enc.fit_transform(data[col])
+    encoders[col] = enc
+
+X = data[['Age','Income','Student','Credit']]
+y = data['Buy']
+
+model = GaussianNB()
+model.fit(X, y)
+
+age = input("Age (youth/middle_aged/senior): ").strip().lower()
+income = input("Income (high/medium/low): ").strip().lower()
+student = input("Student (yes/no): ").strip().lower()
+credit = input("Credit (fair/excellent): ").strip().lower()
+
+user = pd.DataFrame([[age, income, student, credit]], columns=X.columns)
+
+for col in user.columns:
+    enc = encoders[col]
+    if user[col][0] not in enc.classes_:
+        user[col] = [enc.classes_[0]]
+    user[col] = enc.transform(user[col])
+
+pred = model.predict(user)[0]
+result = encoders['Buy'].inverse_transform([pred])[0]
+print("Eligible" if result == "yes" else "Not Eligible")
+
+#Naive Bayes PlayTennis
+import pandas as pd
+from sklearn.preprocessing import LabelEncoder
+from sklearn.naive_bayes import GaussianNB
+
+data = pd.read_csv("naivebayes_playtennis.csv")
+
+encoders = {}
+for col in data.columns:
+    le = LabelEncoder()
+    data[col] = le.fit_transform(data[col])
+    encoders[col] = le
+
+X = data[['Outlook','Temperature','Humidity','Windy']]
+y = data['Play Tennis']
+
+model = GaussianNB()
+model.fit(X, y)
+
+outlook = input("Outlook (Sunny/Overcast/Rainy): ").strip()
+temp = input("Temperature (Hot/Mild/Cool): ").strip()
+humidity = input("Humidity (High/Normal): ").strip()
+windy = input("Windy (True/False): ").strip()
+
+query = pd.DataFrame([[outlook,temp,humidity,windy]], columns=X.columns)
+
+for col in query.columns:
+    query[col] = encoders[col].transform(query[col])
+
+pred = model.predict(query)[0]
+result = encoders['Play Tennis'].inverse_transform([pred])[0]
+
+print("Will Play Tennis?", result)
+
+#Decision Tree BMI
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier
+import matplotlib.pyplot as plt
+
+data = pd.read_csv("desciontree_bmi.csv")
+
+X = data.drop('Outcome', axis=1)
+y = data['Outcome']
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+model = DecisionTreeClassifier(criterion="entropy")
+model.fit(X_train, y_train)
+
+print("Decision Tree Model Trained Successfully for Diabetes Prediction.")
+
+# --- user input ---
+g = float(input("Glucose: "))
+bp = float(input("Blood Pressure: "))
+st = float(input("Skin Thickness: "))
+ins = float(input("Insulin: "))
+bmi = float(input("BMI: "))
+age = float(input("Age: "))
+
+patient = pd.DataFrame([[g,bp,st,ins,bmi,age]], columns=X.columns)
+pred = model.predict(patient)[0]
+
+print("\nPrediction:", "Diabetic" if pred==1 else "Non-Diabetic")
+
+# optional visual (keep if asked graph)
+plt.figure(figsize=(10,5))
+from sklearn.tree import plot_tree
+plot_tree(model, filled=True, feature_names=X.columns)
+plt.show()
+
+#Decision Tree PlayTennis
+import pandas as pd
+from sklearn.preprocessing import LabelEncoder
+from sklearn.tree import DecisionTreeClassifier
+import matplotlib.pyplot as plt
+
+data = pd.read_csv("desciontree_playtennis.csv")
+
+feature_cols = ['Outlook','Temprature','Humidity','Wind']
+target = 'Play_Tennis'
+
+encoders = {}
+for col in feature_cols + [target]:
+    le = LabelEncoder()
+    data[col] = le.fit_transform(data[col])
+    encoders[col] = le
+
+X = data[feature_cols]
+y = data[target]
+
+model = DecisionTreeClassifier(criterion='entropy')
+model.fit(X, y)
+
+print("Decision Tree model trained for Tennis Prediction.")
+
+o = input("Outlook (Sunny/Overcast/Rain): ")
+t = input("Temperature (Hot/Mild/Cool): ")
+h = input("Humidity (High/Normal): ")
+w = input("Wind (Weak/Strong): ")
+
+sample = pd.DataFrame([[o,t,h,w]], columns=feature_cols)
+
+for col in feature_cols:
+    sample[col] = encoders[col].transform(sample[col])
+
+pred = model.predict(sample)[0]
+result = encoders[target].inverse_transform([pred])[0]
+
+print("Play Tennis?", result)
+
+plt.figure(figsize=(6,4))
+from sklearn.tree import plot_tree
+plot_tree(model, filled=True, feature_names=feature_cols)
+plt.show()
+
+#Apriori
+import pandas as pd
+from mlxtend.preprocessing import TransactionEncoder
+from mlxtend.frequent_patterns import apriori
+
+data = pd.read_csv("appriori.csv")
+
+transactions = data.apply(lambda row: [x for x in row[1:] if str(x)!='nan'], axis=1).tolist()
+
+te = TransactionEncoder()
+te_array = te.fit(transactions).transform(transactions)
+df_encoded = pd.DataFrame(te_array, columns=te.columns_)
+
+frequent_itemsets = apriori(df_encoded, min_support=0.3, use_colnames=True)
+print("Frequent Itemsets:")
+print(frequent_itemsets)
+
+#K-means Spending
+import pandas as pd
+from sklearn.preprocessing import LabelEncoder
+from sklearn.cluster import KMeans
+import matplotlib.pyplot as plt
+import warnings
+warnings.filterwarnings("ignore")
+
+data = pd.read_csv("customers_kmeans.csv")
+
+data = data[~data.astype(str).apply(lambda row: row.str.contains("\(1-100\)").any(), axis=1)]
+
+le = LabelEncoder()
+data['Genre'] = le.fit_transform(data['Genre'])
+
+X = data[['Genre','Age','Annual Income (k$)','Spending Score']]
+
+model = KMeans(n_clusters=3, random_state=0)
+data['Cluster'] = model.fit_predict(X)
+
+print("K-Means Clustering Completed Successfully")
+
+plt.scatter(data['Age'], data['Spending Score'], c=data['Cluster'])
+plt.xlabel("Age")
+plt.ylabel("Spending Score")
+plt.title("Customer Segmentation using K-Means")
+plt.show()
+
+#K-means status video
+import pandas as pd
+from sklearn.preprocessing import LabelEncoder
+from sklearn.cluster import KMeans
+import matplotlib.pyplot as plt
+
+data = pd.read_csv("kmeans_video.csv", skiprows=[1])
+
+data.columns = ['status_id','status_type','num_commnts','num_shares','num_likes','num_wows','num_hahas','num_sads','num_angrys']
+
+le = LabelEncoder()
+data['status_type'] = le.fit_transform(data['status_type'])
+
+X = data[['status_type','num_commnts','num_shares','num_likes','num_wows','num_hahas','num_sads','num_angrys']]
+
+model = KMeans(n_clusters=3, random_state=0)
+data['Cluster'] = model.fit_predict(X)
+
+print("KMeans Clustering Completed Successfully")
+
+plt.scatter(data['num_likes'], data['num_commnts'], c=data['Cluster'])
+plt.xlabel("Likes")
+plt.ylabel("Comments")
+plt.title("Status Clustering Result")
+plt.show()
+
+# CURE
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.preprocessing import StandardScaler
+
+data = pd.read_csv("cure.csv", skiprows=[1])
+
+data['Quantity'] = pd.to_numeric(data['Quantity'], errors='coerce')
+data['Unit'] = pd.to_numeric(data['Unit'], errors='coerce')
+data = data.dropna()
+
+X = data[['Quantity','Unit']].values
+
+sc = StandardScaler()
+X_scaled = sc.fit_transform(X)
+
+num_clusters = 2
+clusters = [[x] for x in X_scaled]
+
+def dist(a,b): return np.linalg.norm(a-b)
+
+while len(clusters) > num_clusters:
+    dmin = 999999
+    pair = (0,1)
+    for i in range(len(clusters)):
+        for j in range(i+1,len(clusters)):
+            for a in clusters[i]:
+                for b in clusters[j]:
+                    d = dist(a,b)
+                    if d < dmin:
+                        dmin = d
+                        pair = (i,j)
+    i,j = pair
+    clusters[i] = clusters[i] + clusters[j]
+    del clusters[j]
+
+labels=[]
+for x in X_scaled:
+    for i,c in enumerate(clusters):
+        if any((x==p).all() for p in c):
+            labels.append(i)
+
+labels=np.array(labels)
+
+plt.scatter(X_scaled[:,0],X_scaled[:,1],c=labels)
+plt.xlabel("Quantity")
+plt.ylabel("Unit Price")
+plt.title("CURE Clustering Result")
+plt.show()
+
+print("CURE Clustering Completed Successfully")
